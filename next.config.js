@@ -5,13 +5,13 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'files.stripe.com',
-        port: '',
-        pathname: '/links/**',
+        protocol: "https",
+        hostname: "files.stripe.com",
+        port: "",
+        pathname: "/links/**",
       },
     ],
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
