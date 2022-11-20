@@ -1,6 +1,8 @@
+import axios from "axios";
 import { GetStaticPaths, GetStaticProps } from "next";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import Stripe from "stripe";
 
 import { stripe } from "../../lib/stripe";
@@ -19,15 +21,33 @@ interface ProductProps {
     description: string;
     price: string;
     imageUrl: string;
+    priceId: string;
   };
 }
 
 export default function Product({ product }: ProductProps) {
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
   const { isFallback } = useRouter();
 
   if (isFallback) {
     return <LoadingProduct>loading...</LoadingProduct>;
   }
+
+  const handleBuyProduct = async () => {
+    try {
+      setIsCreatingCheckout(true);
+
+      const response = await axios.post("/api/checkout-session", {
+        priceId: product.priceId,
+      });
+
+      window.location.href = response.data.checkoutUrl;
+    } catch (error) {
+      setIsCreatingCheckout(false);
+
+      alert("An unexpected error occurred!");
+    }
+  };
 
   return (
     <ProductContainer>
@@ -38,7 +58,7 @@ export default function Product({ product }: ProductProps) {
         <h1>{product.name}</h1>
         <span>{product.price}</span>
         <p>{product.description}</p>
-        <button>Buy now</button>
+        <button disabled={isCreatingCheckout} onClick={handleBuyProduct}>Buy now</button>
       </ProductDetails>
     </ProductContainer>
   );
@@ -81,6 +101,7 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({
               currency: "EUR",
             }).format(price.unit_amount / 100)
           : "Preço não informado",
+        priceId: price.id,
       },
     },
     revalidate: 60 * 60 * 1, // 1 hour
